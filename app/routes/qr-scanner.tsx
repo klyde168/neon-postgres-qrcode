@@ -34,11 +34,13 @@ export default function QRScanner() {
   const [result, setResult] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [autoScanEnabled, setAutoScanEnabled] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const scanningRef = useRef(false); // 用於追蹤掃描狀態，避免 state 延遲問題
 
-  // 檢查瀏覽器支援度
+  // 檢查瀏覽器支援度和權限
   const browserSupported = useMemo(() => {
     if (typeof window === 'undefined' || typeof navigator === 'undefined') {
       return false;
@@ -46,14 +48,18 @@ export default function QRScanner() {
     
     const hasMediaDevices = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
     const hasBarcodeDetector = !!(window && 'BarcodeDetector' in window);
+    const isSecureContext = window.isSecureContext || window.location.protocol === 'https:' || window.location.hostname === 'localhost';
     
     console.log("瀏覽器支援檢查:", {
       hasMediaDevices,
       hasBarcodeDetector,
+      isSecureContext,
+      protocol: window.location.protocol,
+      hostname: window.location.hostname,
       userAgent: navigator.userAgent
     });
     
-    return hasMediaDevices && hasBarcodeDetector;
+    return hasMediaDevices && hasBarcodeDetector && isSecureContext;
   }, []);
 
   // 請求相機權限並開啟相機
@@ -83,11 +89,14 @@ export default function QRScanner() {
         videoRef.current.srcObject = stream;
         videoRef.current.play();
         setIsScanning(true);
+        scanningRef.current = true;
         
         // 等待影片準備好後再開始掃描
         videoRef.current.addEventListener('loadeddata', () => {
-          console.log("影片已載入，開始掃描");
-          startScanning();
+          console.log("影片已載入，自動掃描模式:", autoScanEnabled);
+          if (autoScanEnabled) {
+            startScanning();
+          }
         }, { once: true });
       }
     } catch (err) {
@@ -105,19 +114,44 @@ export default function QRScanner() {
     }
   };
 
-  // 停止相機
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
+  // 降級相機質量重試
+  const startCameraWithLowerQuality = async () => {
+    try {
+      console.log("嘗試使用較低畫質開啟相機...");
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: "environment",
+          width: { ideal: 640 },
+          height: { ideal: 480 }
+        }
+      });
+
+      streamRef.current = stream;
+      setHasPermission(true);
+      setError(""); // 清除之前的錯誤
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+        setIsScanning(true);
+        scanningRef.current = true;
+        
+        videoRef.current.addEventListener('loadeddata', () => {
+          console.log("低畫質影片已載入");
+          if (autoScanEnabled) {
+            startScanning();
+          }
+        }, { once: true });
+      }
+    } catch (err) {
+      console.error("低畫質相機也啟動失敗:", err);
+      setError("相機無法啟動，請檢查設備是否有相機並且沒有被其他程式佔用");
     }
-    setIsScanning(false);
-    setHasPermission(null);
   };
 
   // 開始掃描 QR Code
   const startScanning = async () => {
-    console.log("開始掃描 QR Code...");
+    console.log("開始自動掃描 QR Code...");
     
     if (typeof window === 'undefined' || !('BarcodeDetector' in window)) {
       setError("你的瀏覽器不支援 QR Code 掃描");
@@ -130,11 +164,20 @@ export default function QRScanner() {
         formats: ['qr_code']
       });
 
-      console.log("BarcodeDetector 已初始化");
+      console.log("BarcodeDetector 已初始化，開始掃描循環");
 
+      let frameCount = 0;
       const scanFrame = async () => {
-        if (!isScanning || !videoRef.current || !canvasRef.current) {
-          console.log("掃描已停止或元素不存在");
+        frameCount++;
+        
+        // 每 30 幀記錄一次，避免日誌過多
+        if (frameCount % 30 === 0) {
+          console.log(`掃描幀數: ${frameCount}, 掃描狀態: ${scanningRef.current}`);
+        }
+
+        // 使用 ref 而不是 state 來檢查掃描狀態，避免閉包問題
+        if (!scanningRef.current || !videoRef.current || !canvasRef.current) {
+          console.log("掃描停止或元素不存在");
           return;
         }
 
@@ -143,47 +186,47 @@ export default function QRScanner() {
         const context = canvas.getContext('2d');
 
         if (!context || video.readyState !== video.HAVE_ENOUGH_DATA) {
-          requestAnimationFrame(scanFrame);
+          // 繼續下一幀
+          setTimeout(() => requestAnimationFrame(scanFrame), 100);
           return;
         }
 
-        // 將影片幀繪製到 canvas
+        // 設定 canvas 尺寸並繪製影片幀
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
         try {
           const barcodes = await barcodeDetector.detect(canvas);
-          console.log("檢測到的條碼數量:", barcodes.length);
           
           if (barcodes.length > 0) {
             const qrCode = barcodes[0];
-            console.log("掃描到 QR Code:", qrCode.rawValue);
+            console.log("🎉 自動掃描成功! QR Code 內容:", qrCode.rawValue);
             
-            // 更新結果並停止掃描
+            // 立即更新狀態
             setResult(qrCode.rawValue);
             setIsScanning(false);
+            scanningRef.current = false;
             
-            // 在 canvas 上繪製掃描框
+            // 繪製邊界框
             drawBoundingBox(context, qrCode.boundingBox);
             
-            // 震動提示（如果設備支援）
+            // 震動回饋
             if (navigator.vibrate && typeof navigator.vibrate === 'function') {
               console.log("觸發震動回饋");
               navigator.vibrate(200);
             }
             
-            // 不再繼續掃描
+            // 停止掃描循環
             return;
           }
         } catch (detectError) {
           console.error("QR Code 檢測錯誤:", detectError);
-          // 繼續掃描，不要因為單次錯誤就停止
         }
 
-        // 只有在還在掃描狀態時才繼續
-        if (isScanning) {
-          requestAnimationFrame(scanFrame);
+        // 繼續掃描（降低頻率避免過度佔用 CPU）
+        if (scanningRef.current) {
+          setTimeout(() => requestAnimationFrame(scanFrame), 150);
         }
       };
 
@@ -200,6 +243,48 @@ export default function QRScanner() {
     context.strokeStyle = '#00FF00';
     context.lineWidth = 3;
     context.strokeRect(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
+  };
+
+  // 停止相機
+  const stopCamera = () => {
+    console.log("停止相機");
+    scanningRef.current = false;
+    
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setIsScanning(false);
+    setHasPermission(null);
+  };
+
+  // 重置掃描結果
+  const resetScan = () => {
+    console.log("重置掃描狀態");
+    setResult("");
+    setError("");
+    
+    if (hasPermission && videoRef.current) {
+      console.log("重新開始自動掃描");
+      setIsScanning(true);
+      
+      // 稍微延遲以確保狀態更新
+      setTimeout(() => {
+        startScanning();
+      }, 100);
+    } else {
+      console.log("沒有相機權限或影片元素，無法重新開始掃描");
+    }
+  };
+
+  // 檢查結果是否為 URL
+  const checkIfURL = (text: string): boolean => {
+    try {
+      new URL(text);
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   // 手動掃描功能（備用方案）
@@ -254,35 +339,6 @@ export default function QRScanner() {
     } catch (err) {
       console.error("手動掃描失敗:", err);
       setError("掃描失敗: " + (err instanceof Error ? err.message : '未知錯誤'));
-    }
-  };
-
-  // 檢查結果是否為 URL
-  const checkIfURL = (text: string): boolean => {
-    try {
-      new URL(text);
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
-  // 組件卸載時清理
-  useEffect(() => {
-    return () => {
-      console.log("組件卸載，清理相機");
-      stopCamera();
-    };
-  }, []);
-
-  // 重置掃描結果
-  const resetScan = () => {
-    console.log("重置掃描");
-    setResult("");
-    setError("");
-    if (hasPermission) {
-      setIsScanning(true);
-      startScanning();
     }
   };
 
@@ -355,7 +411,7 @@ export default function QRScanner() {
       <div className="relative mb-6">
         <video
           ref={videoRef}
-          className={`w-full h-64 bg-black rounded-lg ${isScanning ? 'block' : 'hidden'}`}
+          className={`w-full h-80 bg-black rounded-lg object-cover ${isScanning ? 'block' : 'hidden'}`}
           playsInline
           muted
         />
@@ -363,13 +419,25 @@ export default function QRScanner() {
         {/* 掃描指示框 */}
         {isScanning && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-48 h-48 border-2 border-white border-dashed rounded-lg opacity-70">
+            <div className="w-72 h-72 border-2 border-white border-dashed rounded-lg opacity-70">
               <div className="relative w-full h-full">
-                {/* 四個角落的掃描框 */}
-                <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-green-400"></div>
-                <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-green-400"></div>
-                <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-green-400"></div>
-                <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-green-400"></div>
+                {/* 四個角落的掃描框 - 加大尺寸 */}
+                <div className="absolute top-0 left-0 w-10 h-10 border-t-4 border-l-4 border-green-400"></div>
+                <div className="absolute top-0 right-0 w-10 h-10 border-t-4 border-r-4 border-green-400"></div>
+                <div className="absolute bottom-0 left-0 w-10 h-10 border-b-4 border-l-4 border-green-400"></div>
+                <div className="absolute bottom-0 right-0 w-10 h-10 border-b-4 border-r-4 border-green-400"></div>
+                
+                {/* 中央掃描線動畫 */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-60 h-0.5 bg-green-400 opacity-60 animate-pulse"></div>
+                </div>
+                
+                {/* 掃描提示文字 */}
+                <div className="absolute bottom-[-2.5rem] left-1/2 transform -translate-x-1/2">
+                  <span className="text-white text-sm bg-black bg-opacity-50 px-2 py-1 rounded">
+                    將 QR Code 對準此框
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -381,6 +449,22 @@ export default function QRScanner() {
 
       {/* 控制按鈕 */}
       <div className="flex flex-col gap-4">
+        {/* 自動掃描設定 */}
+        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          <span className="text-sm font-medium text-gray-700">自動掃描模式</span>
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              checked={autoScanEnabled}
+              onChange={(e) => setAutoScanEnabled(e.target.checked)}
+              className="mr-2"
+            />
+            <span className="text-sm text-gray-600">
+              {autoScanEnabled ? '已啟用' : '已停用'}
+            </span>
+          </label>
+        </div>
+
         {!isScanning && !result && (
           <button
             onClick={startCamera}
@@ -404,6 +488,17 @@ export default function QRScanner() {
             >
               📸 手動掃描
             </button>
+            {autoScanEnabled && (
+              <button
+                onClick={() => {
+                  scanningRef.current = true;
+                  startScanning();
+                }}
+                className="flex-1 bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
+              >
+                🔄 重啟自動掃描
+              </button>
+            )}
           </div>
         )}
 
@@ -434,15 +529,16 @@ export default function QRScanner() {
         </ul>
         
         {/* 調試信息 */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mt-4 p-3 bg-blue-50 rounded text-xs">
-            <strong>調試信息：</strong>
-            <div>瀏覽器支援: {browserSupported ? '✅' : '❌'}</div>
-            <div>掃描狀態: {isScanning ? '進行中' : '停止'}</div>
-            <div>相機權限: {hasPermission === null ? '未請求' : hasPermission ? '已允許' : '被拒絕'}</div>
-            <div>用戶代理: {typeof navigator !== 'undefined' ? navigator.userAgent.substring(0, 50) + '...' : 'N/A'}</div>
-          </div>
-        )}
+        <div className="mt-4 p-3 bg-blue-50 rounded text-xs">
+          <strong>系統診斷：</strong>
+          <div>瀏覽器支援: {browserSupported ? '✅' : '❌'}</div>
+          <div>掃描狀態: {isScanning ? '進行中' : '停止'}</div>
+          <div>相機權限: {hasPermission === null ? '未請求' : hasPermission ? '已允許' : '被拒絕'}</div>
+          <div>協定: {typeof window !== 'undefined' ? window.location.protocol : 'N/A'}</div>
+          <div>主機: {typeof window !== 'undefined' ? window.location.hostname : 'N/A'}</div>
+          <div>安全上下文: {typeof window !== 'undefined' ? (window.isSecureContext ? '✅' : '❌') : 'N/A'}</div>
+          <div>用戶代理: {typeof navigator !== 'undefined' ? navigator.userAgent.substring(0, 50) + '...' : 'N/A'}</div>
+        </div>
       </div>
     </div>
   );

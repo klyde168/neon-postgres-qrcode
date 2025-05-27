@@ -13,4 +13,9 @@ export default defineConfig({
       "~": path.resolve(__dirname, "./app"),
     },
   },
+  server: {
+    port: 80,
+    host: true, // 允許外部訪問
+     open: true, // 自動開啟瀏覽器
+  },
 });
