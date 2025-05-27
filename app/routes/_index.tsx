@@ -11,7 +11,7 @@ export default function Index() {
           整合 Neon 雲端資料庫與 Remix 全端框架的文章管理系統
         </p>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mt-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mt-12">
           {/* 文章管理 */}
           <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
             <div className="text-center">
@@ -88,6 +88,25 @@ export default function Index() {
             </div>
           </div>
 
+          {/* QR Code 掃描記錄 */}
+          <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+            <div className="text-center">
+              <div className="bg-teal-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">掃描記錄</h3>
+              <p className="text-gray-600 mb-4">查看 QR Code 掃描歷史</p>
+              <Link
+                to="/qr-records"
+                className="inline-block bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 transition-colors"
+              >
+                查看記錄
+              </Link>
+            </div>
+          </div>
+
           {/* 資料庫測試 */}
           <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
             <div className="text-center">
@@ -130,11 +149,36 @@ export default function Index() {
             </div>
             <div className="bg-gray-50 p-4 rounded-lg">
               <h4 className="font-semibold text-gray-900 mb-2">📱 QR Code 掃描</h4>
-              <p className="text-sm text-gray-600">手機相機 QR Code 讀取</p>
+              <p className="text-sm text-gray-600">手機相機 QR Code 讀取與記錄</p>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg">
               <h4 className="font-semibold text-gray-900 mb-2">🎲 QR Code 生成</h4>
               <p className="text-sm text-gray-600">隨機唯一值 QR Code 生成</p>
+            </div>
+          </div>
+        </div>
+
+        {/* 新功能亮點 */}
+        <div className="mt-12 bg-gradient-to-r from-blue-50 to-teal-50 p-6 rounded-lg border border-blue-200">
+          <h3 className="text-xl font-bold text-gray-900 mb-4">🆕 最新功能</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+            <div className="bg-white p-4 rounded border-l-4 border-blue-500">
+              <h4 className="font-semibold text-blue-900 mb-2">📊 QR Code 掃描記錄系統</h4>
+              <ul className="text-sm text-gray-700 space-y-1">
+                <li>• 自動解析多種 QR Code 格式</li>
+                <li>• 儲存學生資訊、課程資料</li>
+                <li>• 支援 Gmail、學號、姓名等欄位</li>
+                <li>• 提供統計分析功能</li>
+              </ul>
+            </div>
+            <div className="bg-white p-4 rounded border-l-4 border-teal-500">
+              <h4 className="font-semibold text-teal-900 mb-2">🔧 智能資料解析</h4>
+              <ul className="text-sm text-gray-700 space-y-1">
+                <li>• JSON 格式自動識別</li>
+                <li>• URL 參數格式解析</li>
+                <li>• 分隔符格式支援</li>
+                <li>• 手動編輯功能</li>
+              </ul>
             </div>
           </div>
         </div>
