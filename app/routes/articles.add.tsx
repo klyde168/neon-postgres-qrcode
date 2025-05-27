@@ -8,10 +8,13 @@
 
 import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node";
 import { Form, useActionData, useNavigation, Link } from "@remix-run/react";
-import { neon } from '@neondatabase/serverless';
+// 移除靜態導入，改為動態導入
+// import { neon } from '@neondatabase/serverless';
 
 // Action function 處理表單提交 (POST 請求)
 export async function action({ request }: ActionFunctionArgs) {
+  // 使用動態導入來避免 SSR 建置問題
+  const { neon } = await import('@neondatabase/serverless');
   const sql = neon(process.env.DATABASE_URL!);
   
   try {

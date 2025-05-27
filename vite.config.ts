@@ -7,8 +7,15 @@ export default defineConfig({
       ignoredRouteFiles: ["**/.*"],
     })
   ],
+  build: {
+    rollupOptions: {
+      external: [],
+    },
+  },
   ssr: {
-    // 將 Neon 套件標記為外部依賴，避免 SSR 建置時的問題
     noExternal: ["@neondatabase/serverless"],
+  },
+  optimizeDeps: {
+    include: ["@neondatabase/serverless"],
   },
 });

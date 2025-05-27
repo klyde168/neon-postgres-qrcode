@@ -9,7 +9,8 @@
 
 import { json, type LoaderFunctionArgs } from "@remix-run/node";
 import { useLoaderData, Link } from "@remix-run/react";
-import { neon } from '@neondatabase/serverless';
+// 移除靜態導入，改為動態導入
+// import { neon } from '@neondatabase/serverless';
 
 // 定義文章資料類型，對應資料表結構
 interface Article {
@@ -26,6 +27,8 @@ type LoaderData =
 
 // Loader function 在頁面載入時執行 (GET 請求)
 export async function loader({ request }: LoaderFunctionArgs) {
+  // 使用動態導入來避免 SSR 建置問題
+  const { neon } = await import('@neondatabase/serverless');
   const sql = neon(process.env.DATABASE_URL!);
   
   try {
