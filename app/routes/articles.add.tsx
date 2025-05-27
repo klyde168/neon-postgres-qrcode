@@ -8,7 +8,7 @@
 
 import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node";
 import { Form, useActionData, useNavigation, Link } from "@remix-run/react";
-import { query } from "~/utils/db.server";
+import { query } from "../utils/db.server";
 
 // Action function 處理表單提交 (POST 請求)
 export async function action({ request }: ActionFunctionArgs) {

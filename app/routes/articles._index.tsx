@@ -9,7 +9,7 @@
 
 import { json, type LoaderFunctionArgs } from "@remix-run/node";
 import { useLoaderData, Link } from "@remix-run/react";
-import { query } from "~/utils/db.server";
+import { query } from "../utils/db.server";
 
 // 定義文章資料類型，對應資料表結構
 interface Article {
