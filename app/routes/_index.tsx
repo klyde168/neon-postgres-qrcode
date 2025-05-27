@@ -1,12 +1,3 @@
-/**
- * 檔案路徑：app/routes/_index.tsx
- * 
- * 這是網站的首頁
- * - 路由：/ (根路徑)
- * - 功能：顯示專案介紹和導航連結
- * - 檔名說明：_index.tsx 表示這是根路由的索引頁面
- */
-
 import { Link } from "@remix-run/react";
 
 export default function Index() {
@@ -20,7 +11,7 @@ export default function Index() {
           整合 Neon 雲端資料庫與 Remix 全端框架的文章管理系統
         </p>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mt-12">
           {/* 文章管理 */}
           <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
             <div className="text-center">
@@ -64,7 +55,7 @@ export default function Index() {
             <div className="text-center">
               <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">QR Code 掃描</h3>
@@ -78,11 +69,30 @@ export default function Index() {
             </div>
           </div>
 
-          {/* 資料庫測試 */}
+          {/* QR Code 生成器 */}
           <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
             <div className="text-center">
               <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">QR Code 生成</h3>
+              <p className="text-gray-600 mb-4">生成唯一值 QR Code</p>
+              <Link
+                to="/qr-generator"
+                className="inline-block bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
+              >
+                開啟生成器
+              </Link>
+            </div>
+          </div>
+
+          {/* 資料庫測試 */}
+          <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+            <div className="text-center">
+              <div className="bg-pink-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
                 </svg>
               </div>
@@ -90,7 +100,7 @@ export default function Index() {
               <p className="text-gray-600 mb-4">測試 Neon PostgreSQL 連線狀況</p>
               <Link
                 to="/test"
-                className="inline-block bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
+                className="inline-block bg-pink-600 text-white px-4 py-2 rounded-md hover:bg-pink-700 transition-colors"
               >
                 測試連線
               </Link>
@@ -101,7 +111,7 @@ export default function Index() {
         {/* 功能特色 */}
         <div className="mt-16">
           <h2 className="text-2xl font-bold text-gray-900 mb-8">主要功能</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 text-left">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 text-left">
             <div className="bg-gray-50 p-4 rounded-lg">
               <h4 className="font-semibold text-gray-900 mb-2">🚀 Remix 框架</h4>
               <p className="text-sm text-gray-600">現代化的全端 React 框架</p>
@@ -121,6 +131,10 @@ export default function Index() {
             <div className="bg-gray-50 p-4 rounded-lg">
               <h4 className="font-semibold text-gray-900 mb-2">📱 QR Code 掃描</h4>
               <p className="text-sm text-gray-600">手機相機 QR Code 讀取</p>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="font-semibold text-gray-900 mb-2">🎲 QR Code 生成</h4>
+              <p className="text-sm text-gray-600">隨機唯一值 QR Code 生成</p>
             </div>
           </div>
         </div>

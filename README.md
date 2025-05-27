@@ -1,6 +1,6 @@
-# Neon PostgreSQL + Remix 文章管理系統
+# Neon PostgreSQL + Remix 全功能管理系統
 
-這是一個整合 Neon PostgreSQL 與 Remix 的完整文章管理系統，展示如何在 Remix 應用程式中進行 CRUD 操作、資料庫管理，並整合現代化的 QR Code 掃描功能。
+這是一個整合 Neon PostgreSQL 與 Remix 的完整管理系統，展示如何在 Remix 應用程式中進行 CRUD 操作、資料庫管理，並整合現代化的 QR Code 掃描和生成功能。
 
 ## 🚀 功能特色
 
@@ -9,6 +9,7 @@
 - **TypeScript** - 型別安全的開發體驗
 - **文章管理系統** - 完整的新增、查看、列表功能
 - **QR Code 掃描器** - 使用手機相機即時掃描 QR Code
+- **QR Code 生成器** - 生成多種類型的唯一值 QR Code
 - **響應式設計** - 支援各種螢幕尺寸
 - **資料庫連線測試** - 驗證 Neon 資料庫連線狀態
 
@@ -90,6 +91,7 @@
 
 2. **掃描 QR Code**
    - 將 QR Code 對準畫面中央的掃描框
+   - 支援自動掃描和手動掃描兩種模式
    - 掃描成功後會自動顯示結果
    - 支援震動回饋（支援的設備）
 
@@ -101,7 +103,30 @@
 4. **瀏覽器支援**
    - 最佳支援：Chrome 88+、Edge 88+
    - 部分支援：Safari 14+（可能需要手動啟用）
+   - 需要 HTTPS 環境或 localhost
    - 不支援的瀏覽器會顯示提醒訊息
+
+### QR Code 生成功能
+
+1. **生成類型選擇**
+   - **UUID v4**：符合國際標準的 128 位元唯一識別碼
+   - **時間戳記**：基於當前時間和隨機值的組合
+   - **純隨機**：16 字符的隨機字母數字組合
+   - **安全令牌**：使用加密安全的隨機數生成器
+   - **自定義前綴**：在唯一值前加上自定義文字
+
+2. **生成和管理**
+   - 一鍵生成標準 QR Code
+   - 即時預覽生成的 QR Code
+   - 複製 QR Code 內容到剪貼簿
+   - 下載為 SVG 或 PNG 格式
+   - 保留最新 10 個生成記錄
+
+3. **品質保證**
+   - 使用專業 QR Code API 生成
+   - 符合 ISO/IEC 18004 國際標準
+   - 可被任何標準 QR Code 掃描器識別
+   - 支援高解析度輸出
 
 ### 資料庫測試
 
@@ -117,6 +142,7 @@ neon-postgres-qrcode/
 │   │   ├── articles._index.tsx # 文章列表 (/articles)
 │   │   ├── articles.add.tsx    # 新增文章 (/articles/add)
 │   │   ├── qr-scanner.tsx      # QR Code 掃描器 (/qr-scanner)
+│   │   ├── qr-generator.tsx    # QR Code 生成器 (/qr-generator)
 │   │   └── test.tsx            # 資料庫測試 (/test)
 │   ├── utils/
 │   │   └── db.server.ts        # 資料庫連線工具
@@ -178,6 +204,7 @@ npm run lint
 | `/articles` | `app/routes/articles._index.tsx` | 文章列表，顯示所有文章 |
 | `/articles/add` | `app/routes/articles.add.tsx` | 新增文章表單頁面 |
 | `/qr-scanner` | `app/routes/qr-scanner.tsx` | QR Code 掃描器頁面 |
+| `/qr-generator` | `app/routes/qr-generator.tsx` | QR Code 生成器頁面 |
 | `/test` | `app/routes/test.tsx` | 資料庫連線測試頁面 |
 
 ## 🔄 資料流程
@@ -213,6 +240,17 @@ SELECT FROM article 資料表
 啟動即時掃描 (BarcodeDetector API)
     ↓
 識別 QR Code 並顯示結果
+```
+
+### QR Code 生成流程
+```
+使用者選擇生成類型 (/qr-generator)
+    ↓
+生成唯一值 (UUID/時間戳記/隨機/安全令牌)
+    ↓
+調用專業 QR Code API 生成標準 QR Code
+    ↓
+顯示 QR Code 並提供下載/複製功能
 ```
 
         {/* 功能特色 */}
@@ -260,9 +298,15 @@ MIT License
 
 ---
 
-**注意：** 請確保 `.env` 檔案不要提交到版本控制系統中，已包含在 `.gitignore` 中。
-
-**QR Code 掃描功能注意事項：**
-- 需要 HTTPS 環境（除了 localhost）
-- 建議使用 Chrome 或 Edge 瀏覽器獲得最佳體驗
+**注意事項：**
+- 請確保 `.env` 檔案不要提交到版本控制系統中，已包含在 `.gitignore` 中
+- QR Code 掃描功能需要 HTTPS 環境（除了 localhost）
+- 建議使用 Chrome 或 Edge 瀏覽器獲得最佳 QR Code 體驗
 - 首次使用需要允許相機權限
+- 生成的 QR Code 使用第三方 API，確保網路連線正常
+
+**部署環境：** 
+- 開發環境：`http://localhost:8080`
+- 正式環境：`https://neon-postgres-qrcode.vercel.app`
+
+**Live Demo：** [https://neon-postgres-qrcode.vercel.app](https://neon-postgres-qrcode.vercel.app)

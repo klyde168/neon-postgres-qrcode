@@ -356,6 +356,17 @@ export default function QRScanner() {
           </svg>
           <span className="text-sm font-medium">回到首頁</span>
         </Link>
+        
+        <Link
+          to="/qr-generator"
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
+          title="QR Code 生成器"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span className="text-sm font-medium">生成器</span>
+        </Link>
       </div>
 
       <h1 className="text-3xl font-bold mb-6">QR Code 掃描器</h1>
