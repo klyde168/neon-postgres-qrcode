@@ -7,15 +7,4 @@ export default defineConfig({
       ignoredRouteFiles: ["**/.*"],
     })
   ],
-  build: {
-    rollupOptions: {
-      external: [],
-    },
-  },
-  ssr: {
-    noExternal: ["@neondatabase/serverless"],
-  },
-  optimizeDeps: {
-    include: ["@neondatabase/serverless"],
-  },
 });

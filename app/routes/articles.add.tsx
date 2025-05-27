@@ -8,15 +8,10 @@
 
 import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node";
 import { Form, useActionData, useNavigation, Link } from "@remix-run/react";
-// 移除靜態導入，改為動態導入
-// import { neon } from '@neondatabase/serverless';
+import { query } from "~/utils/db.server";
 
 // Action function 處理表單提交 (POST 請求)
 export async function action({ request }: ActionFunctionArgs) {
-  // 使用動態導入來避免 SSR 建置問題
-  const { neon } = await import('@neondatabase/serverless');
-  const sql = neon(process.env.DATABASE_URL!);
-  
   try {
     // 解析表單資料
     const formData = await request.formData();
@@ -34,11 +29,10 @@ export async function action({ request }: ActionFunctionArgs) {
 
     // 使用 SQL 語法新增文章到 article 資料表
     // 對應資料表結構：CREATE TABLE "public"."article" (...)
-    const result = await sql`
-      INSERT INTO article (title, content, cover) 
-      VALUES (${title}, ${content}, ${cover || null})
-      RETURNING id, title, content, cover, updated_at
-    `;
+    const result = await query(
+      'INSERT INTO article (title, content, cover) VALUES ($1, $2, $3) RETURNING id, title, content, cover, updated_at',
+      [title, content, cover || null]
+    );
 
     console.log("新增文章成功:", result[0]);
 

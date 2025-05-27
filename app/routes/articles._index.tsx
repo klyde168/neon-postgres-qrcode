@@ -9,8 +9,7 @@
 
 import { json, type LoaderFunctionArgs } from "@remix-run/node";
 import { useLoaderData, Link } from "@remix-run/react";
-// 移除靜態導入，改為動態導入
-// import { neon } from '@neondatabase/serverless';
+import { query } from "~/utils/db.server";
 
 // 定義文章資料類型，對應資料表結構
 interface Article {
@@ -27,17 +26,11 @@ type LoaderData =
 
 // Loader function 在頁面載入時執行 (GET 請求)
 export async function loader({ request }: LoaderFunctionArgs) {
-  // 使用動態導入來避免 SSR 建置問題
-  const { neon } = await import('@neondatabase/serverless');
-  const sql = neon(process.env.DATABASE_URL!);
-  
   try {
     // 查詢所有文章，按更新時間倒序排列（最新的在前面）
-    const articles = await sql`
-      SELECT id, title, content, cover, updated_at 
-      FROM article 
-      ORDER BY updated_at DESC
-    `;
+    const articles = await query(
+      'SELECT id, title, content, cover, updated_at FROM article ORDER BY updated_at DESC'
+    );
 
     return json<LoaderData>({ 
       success: true, 

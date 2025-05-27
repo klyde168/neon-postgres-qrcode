@@ -1,7 +1,6 @@
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-// 移除靜態導入，改為動態導入
-// import { neon } from '@neondatabase/serverless';
+import { query } from "~/utils/db.server";
 
 // 定義回傳類型
 type LoaderData = 
@@ -9,12 +8,8 @@ type LoaderData =
   | { success: false; error: string };
 
 export async function loader() {
-  // 使用動態導入來避免 SSR 建置問題
-  const { neon } = await import('@neondatabase/serverless');
-  const sql = neon(process.env.DATABASE_URL!);
-  
   try {
-    const result = await sql`SELECT version()`;
+    const result = await query('SELECT version()');
     return json<LoaderData>({ 
       success: true, 
       version: result[0].version as string 
