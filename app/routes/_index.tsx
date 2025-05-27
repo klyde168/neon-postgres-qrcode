@@ -20,7 +20,7 @@ export default function Index() {
           整合 Neon 雲端資料庫與 Remix 全端框架的文章管理系統
         </p>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-12">
           {/* 文章管理 */}
           <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
             <div className="text-center">
@@ -59,6 +59,25 @@ export default function Index() {
             </div>
           </div>
 
+          {/* QR Code 掃描器 */}
+          <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+            <div className="text-center">
+              <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">QR Code 掃描</h3>
+              <p className="text-gray-600 mb-4">使用相機掃描 QR Code</p>
+              <Link
+                to="/qr-scanner"
+                className="inline-block bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-700 transition-colors"
+              >
+                開啟掃描器
+              </Link>
+            </div>
+          </div>
+
           {/* 資料庫測試 */}
           <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
             <div className="text-center">
@@ -82,7 +101,7 @@ export default function Index() {
         {/* 功能特色 */}
         <div className="mt-16">
           <h2 className="text-2xl font-bold text-gray-900 mb-8">主要功能</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 text-left">
             <div className="bg-gray-50 p-4 rounded-lg">
               <h4 className="font-semibold text-gray-900 mb-2">🚀 Remix 框架</h4>
               <p className="text-sm text-gray-600">現代化的全端 React 框架</p>
@@ -98,6 +117,10 @@ export default function Index() {
             <div className="bg-gray-50 p-4 rounded-lg">
               <h4 className="font-semibold text-gray-900 mb-2">🎨 Tailwind CSS</h4>
               <p className="text-sm text-gray-600">實用優先的 CSS 框架</p>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="font-semibold text-gray-900 mb-2">📱 QR Code 掃描</h4>
+              <p className="text-sm text-gray-600">手機相機 QR Code 讀取</p>
             </div>
           </div>
         </div>
