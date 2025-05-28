@@ -2,7 +2,7 @@
 import React, { useEffect } from "react";
 import { Link } from "@remix-run/react";
 import { useQRScanner } from "../../hooks/useQRScanner";
-import { CameraSection } from "../../components/QRScannerUI/CameraSection";
+import { CameraSection } from "./CameraSection";
 import { ResultSection } from "./ResultSection";
 import { DataFormSection } from "./DataFormSection";
 import { InstructionsSection } from "./InstructionsSection";
@@ -13,9 +13,15 @@ export function QRScannerUI() {
   // 清理資源
   useEffect(() => {
     return () => {
-      scanner.cleanup();
+      // 清理邏輯移到組件卸載時
+      if (scanner.stream) {
+        scanner.stream.getTracks().forEach(track => track.stop());
+      }
+      if (scanner.scanIntervalRef.current) {
+        clearInterval(scanner.scanIntervalRef.current);
+      }
     };
-  }, [scanner.cleanup]);
+  }, [scanner.stream, scanner.scanIntervalRef]);
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -78,19 +84,49 @@ export function QRScannerUI() {
         </div>
       )}
 
-      {/* 相機區域 */}
-      <CameraSection scanner={scanner} />
-
-      {/* 掃描結果區域 */}
-      {scanner.scanResult && (
-        <>
-          <ResultSection scanner={scanner} />
-          <DataFormSection scanner={scanner} />
-        </>
+      {/* 不支援的瀏覽器 */}
+      {!scanner.isSupported && (
+        <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
+          <p>您的瀏覽器不支援相機功能。建議使用以下瀏覽器：</p>
+          <ul className="list-disc list-inside mt-2">
+            <li>Chrome 88+ (推薦)</li>
+            <li>Microsoft Edge 88+</li>
+            <li>Safari 14+ (可能需要手動啟用)</li>
+          </ul>
+        </div>
       )}
 
-      {/* 使用說明 */}
-      <InstructionsSection supportsBarcodeDetector={scanner.supportsBarcodeDetector} />
+      {/* 主要內容 */}
+      {scanner.isSupported && (
+        <>
+          {/* 相機區域 */}
+          <CameraSection 
+            scanner={{
+              isScanning: scanner.isScanning,
+              isAutoScan: true, // 固定為 true
+              supportsBarcodeDetector: 'BarcodeDetector' in window,
+              hasPermission: scanner.hasPermission,
+              videoRef: scanner.videoRef,
+              canvasRef: scanner.canvasRef,
+              setIsAutoScan: () => {}, // 空函數
+              startScanning: scanner.startCamera,
+              stopCamera: scanner.stopCamera,
+              manualScan: () => {} // 空函數，因為是自動掃描
+            }}
+          />
+
+          {/* 掃描結果區域 */}
+          {scanner.scannedData && (
+            <>
+              <ResultSection scanner={scanner} />
+              <DataFormSection scanner={scanner} />
+            </>
+          )}
+
+          {/* 使用說明 */}
+          <InstructionsSection supportsBarcodeDetector={'BarcodeDetector' in window} />
+        </>
+      )}
     </div>
   );
 }
